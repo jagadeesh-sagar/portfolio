@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { MDXRemote } from 'next-mdx-remote/rsc'
+import { compileMDX } from 'next-mdx-remote/rsc'
 import { getAllPosts, getPostBySlug } from '@/lib/posts'
 
 export async function generateStaticParams() {
@@ -65,6 +65,12 @@ export default async function BlogPostPage({ params }) {
 
   const { frontmatter, source } = post
 
+  const { content } = await compileMDX({
+    source,
+    components,
+    options: { parseFrontmatter: false },
+  })
+
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-14">
 
@@ -105,7 +111,7 @@ export default async function BlogPostPage({ params }) {
 
       {/* MDX content */}
       <article>
-        <MDXRemote source={source} components={components} />
+        {content}
       </article>
 
       {/* Footer nav */}
