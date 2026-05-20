@@ -1,0 +1,16 @@
+---
+title: "I gave an AI 31 tools to control my e-commerce backend"
+date: "2026-05-10"
+tags: ["MCP", "Django", "AI Tooling"]
+excerpt: "How I wired up FastMCP to a Django REST API so AI agents can browse products, create orders, and manage reviews — all through structured tool calls."
+---
+
+Last semester I was deep in a Django REST Framework project — a full e-commerce backend with products, carts, orders, reviews, and role-based access. It worked fine for human clients. Then I started wondering: what would it take to make the whole thing *AI-callable*? Not just an API that an LLM could theoretically hit with raw HTTP, but something a tool-using agent could operate with zero ambiguity.
+
+That question led me to the Model Context Protocol (MCP). MCP lets you expose your backend as a set of named, typed *tools* — each one with a clear description, input schema, and output contract. I used FastMCP, a Python library that wraps an existing service and auto-generates the MCP server. Within a weekend I had 31 endpoints — list products, get product by ID, add to cart, place order, write a review, moderate a review — all exposed as callable tools. An AI agent running Claude or GPT-4 could now *browse* my store, *purchase* items, and *leave feedback* without a single line of JavaScript on the frontend.
+
+The most interesting engineering challenge wasn't the MCP layer itself — FastMCP handled the boilerplate beautifully. It was designing the tool descriptions. AI agents are surprisingly literal: if your `list_products` tool description doesn't mention that it supports filtering by category, the model will never pass a `category` parameter. Good tool design turned out to be half documentation, half API contract. Every param needed a crystal-clear description and a real example value. The result is a backend that's just as useful to an AI agent as it is to a React frontend — and that feels like the right direction for where web APIs are heading.
+
+---
+
+*Code on GitHub → see the Projects page.*

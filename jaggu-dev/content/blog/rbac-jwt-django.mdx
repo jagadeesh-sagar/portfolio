@@ -1,0 +1,301 @@
+---
+title: "Django ORM Optimization: Lessons from Building a 31-Endpoint E-Commerce Backend"
+date: "2026-04-20"
+tags: ["Django", "ORM", "Performance", "PostgreSQL"]
+excerpt: "A walkthrough of real ORM mistakes I made and fixed while building a production Django e-commerce API — with before/after queries, actual code from the repo, and the reasoning behind each fix."
+---
+
+> 🔗 **All the code discussed in this post lives here:**
+> [**github.com/jagadeesh-sagar/django-ecommerce-app**](https://github.com/jagadeesh-sagar/django-ecommerce-app)
+> Every snippet is taken directly from this repo — nothing is made up.
+
+When I started building my [Django e-commerce backend](https://github.com/jagadeesh-sagar/django-ecommerce-app), I wasn't thinking about the database. I was thinking about features — products, carts, orders, reviews, 31 MCP endpoints for AI agents to call. The ORM made it easy to get things working. It also made it easy to quietly fire 40 database queries on a single API request without noticing.
+
+This post is a honest walkthrough of the mistakes I made and fixed. Every example comes directly from the codebase. No synthetic scenarios.
+
+---
+
+## The setup: what the app looks like
+
+The data model has real depth. A single product detail page touches:
+
+- `Product` → `Category`, `Brand`, `Seller` → `User` (foreign keys)
+- `ProductImage`, `ProductVariant`, `Review`, `QnA` (reverse relations)
+
+A cart view touches `CartItem` → `Product` → `Category`, `Brand`, `Seller` → `User`, and also `ProductImage`, `ProductVariant`, `Review` for the cart product card.
+
+That's a lot of joins hiding inside innocent-looking `.filter()` calls.
+
+---
+
+## Mistake 1: Touching foreign keys in a serializer without `select_related`
+
+The first version of `ProductsListAPIView` looked something like this:
+
+```python
+# ❌ Before — triggers N+1
+def get(self, request):
+    queryset = models.Product.objects.all()
+    serializer = ProductSerializer(queryset, many=True, context={'request': request})
+    return Response(serializer.data)
+```
+
+And `ProductSerializer` accessed:
+
+```python
+category_name = serializers.CharField(source='category.name', read_only=True)
+brand_name    = serializers.CharField(source='brand.name',    read_only=True)
+```
+
+For every product in the list, Django fired a separate `SELECT` to fetch `category` and another to fetch `brand`. With 20 products per page that's **1 + 20 + 20 = 41 queries** just to list products.
+
+The fix is one line:
+
+```python
+# ✅ After — 3 queries total (products + categories + brands)
+queryset = models.Product.objects.select_related('category', 'brand')
+```
+
+`select_related` turns the FK joins into a single SQL `JOIN` instead of separate round-trips. Use it any time a serializer reads `obj.foreignkey.field`.
+
+---
+
+## Mistake 2: Forgetting `prefetch_related` for reverse relations
+
+`select_related` handles forward FK and `OneToOne` fields. It doesn't help for reverse relations — the "many" side of a `ForeignKey` pointing back at your model.
+
+In `ProductDetailView`, the serializer renders images, variants, reviews, and Q&A:
+
+```python
+# ❌ Before — each prefetch_related miss = N queries
+queryset = models.Product.objects\
+    .select_related('category', 'brand', 'seller__user')
+# missing: images, variants, reviews, questions
+```
+
+With 1 product detail page, that still fires:
+
+- 1 query for the product
+- 1 query for all images
+- 1 query for all variants
+- 1 query for all reviews
+- 1 query for all Q&A entries
+
+That's fine for one product. But if the list view renders product cards with images included (which mine does — `ProductSerializer` embeds `images`), it becomes N queries for N products.
+
+The fix in my `ProductDetailView`:
+
+```python
+# ✅ After — 5 queries regardless of relation count
+queryset = models.Product.objects\
+    .select_related('category', 'brand', 'seller__user')\
+    .prefetch_related('images', 'variants', 'reviews', 'questions')
+```
+
+And the fix I still need to apply to `ProductsListAPIView` — the list view serializer also renders `images`, so it needs:
+
+```python
+queryset = models.Product.objects\
+    .select_related('category', 'brand')\
+    .prefetch_related('images')   # ← this was missing
+```
+
+One missing `prefetch_related` is the most common silent performance killer in Django. It doesn't raise an error — it just adds a query per row.
+
+---
+
+## Mistake 3: Using `SerializerMethodField` for URLs
+
+In an early version of `ProductSerializer`, the product detail URL was generated like this:
+
+```python
+# ❌ Before — Python function call per object
+product_detail = serializers.SerializerMethodField()
+
+def get_product_detail(self, obj):
+    request = self.context.get('request')
+    if request is None:
+        return None
+    url = reverse('product-detail', kwargs={"pk": obj.id}, request=request)
+    return f'{url}'
+```
+
+This runs a Python function for every object in the queryset. Even though it's just URL construction, in a paginated list of 20 products it's 20 Python `reverse()` calls, 20 string formats, 20 dict lookups.
+
+I replaced it with:
+
+```python
+# ✅ After — DRF handles URL generation internally, no per-object Python call
+product_detail = serializers.HyperlinkedIdentityField(
+    view_name='product-detail',
+    lookup_field='pk'
+)
+```
+
+`HyperlinkedIdentityField` is the right tool here — it's what it's designed for, it's faster, and it's less code to maintain. You can see the old version commented out in the repo with my note: *"This runs a Python function for every object. Even though it's small, in large lists → performance hit."*
+
+---
+
+## Mistake 4: Inserting in a loop instead of `bulk_create`
+
+When placing an order, the first version looped and inserted one `OrderItem` at a time:
+
+```python
+# ❌ Before — 1 INSERT per item
+for item in order_items:
+    OrderItem.objects.create(
+        order=order,
+        product=item['product'],
+        ...
+    )
+```
+
+For a 5-item order that's 5 `INSERT` statements. For a cart with 20 items it's 20. Each `create()` call is a full round-trip to PostgreSQL.
+
+The fixed version in `OrderSerializer.create()`:
+
+```python
+# ✅ After — 1 INSERT for all items
+order_item_objects = []
+
+for item in order_items:
+    order_item_objects.append(
+        models.OrderItem(
+            order=order,
+            product=product,
+            product_variant=variant,
+            quantity=quantity,
+            unit_price=unit_price,
+            total_price=total_price,
+        )
+    )
+
+models.OrderItem.objects.bulk_create(order_item_objects)
+```
+
+Same pattern appears in `ProductCreateSerializers.create()` for creating multiple `ProductVariant` rows when a seller lists a new product:
+
+```python
+variants_items = [
+    models.ProductVariant(product=product, **variant)
+    for variant in variant_data
+]
+models.ProductVariant.objects.bulk_create(variants_items)
+```
+
+`bulk_create` sends a single `INSERT ... VALUES (...), (...), (...)` statement. The database does one commit instead of N. On AWS EC2 with PostgreSQL on RDS, this made the order placement endpoint noticeably faster under load testing.
+
+---
+
+## Mistake 5: No `select_for_update` on stock deduction
+
+This one is less obvious but more dangerous. When an order is placed, the code decrements stock:
+
+```python
+# ❌ Before — race condition possible
+product = models.Product.objects.get(id=item['product'].id)
+product.stock_qty -= quantity
+product.save()
+```
+
+If two buyers order the last unit at the exact same time, both `GET` requests see `stock_qty = 1`. Both pass the `if product.stock_qty < quantity` check. Both decrement. The product goes to -1 stock.
+
+The fix uses a row-level lock:
+
+```python
+# ✅ After — database locks the row until the transaction commits
+product = models.Product.objects\
+    .select_for_update()\
+    .get(id=item['product'].id)
+```
+
+`select_for_update()` translates to `SELECT ... FOR UPDATE` in PostgreSQL — it acquires an exclusive lock on that row. The second concurrent request blocks until the first transaction commits, then sees the updated `stock_qty`. No overselling.
+
+This only works inside a `transaction.atomic()` block, which the entire `OrderSerializer.create()` method is wrapped in:
+
+```python
+@transaction.atomic
+def create(self, validated_data):
+    ...
+```
+
+---
+
+## Mistake 6: The cart view — where N+1 still lives
+
+Here's one I haven't fully fixed yet, and it's worth being honest about.
+
+The cart `GET` view fetches cart items like this:
+
+```python
+# current — missing select_related and prefetch_related
+cart = models.Cart.objects.get_or_create(user=self.request.user)
+cartitem = models.CartItem.objects.filter(Q(cart__user=cart[0].user))
+```
+
+But `CartItemRetrieveSerializers` renders a full product card — accessing `product.category.name`, `product.brand.name`, `product.seller.user.username`, `product.images`, `product.variants`, and `product.reviews` for every cart item.
+
+What it should look like:
+
+```python
+# ✅ What it should be
+cartitem = models.CartItem.objects\
+    .filter(cart__user=request.user)\
+    .select_related(
+        'product__category',
+        'product__brand',
+        'product__seller__user',
+        'product_variant',
+    )\
+    .prefetch_related(
+        'product__images',
+        'product__variants',
+        'product__reviews',
+    )
+```
+
+Right now with a 5-item cart, the view is firing roughly 25–30 queries. With the fix above it would be 6: one for cart items, then one each for the `select_related` joins and `prefetch_related` batches. I'm fixing this next.
+
+---
+
+## The habit that made all of this manageable: `transaction.atomic`
+
+Beyond query optimization, the single biggest architectural habit I adopted was wrapping every multi-step write operation in `@transaction.atomic`. Order creation touches `Order`, `OrderItem`, and stock updates. Product creation touches `Product` and `ProductVariant`. If any step fails, the whole thing rolls back — no orphaned orders, no half-created products.
+
+```python
+@transaction.atomic
+def create(self, validated_data):
+    # every DB write inside here is one transaction
+    order = models.Order.objects.create(...)
+    models.OrderItem.objects.bulk_create(order_item_objects)
+    # if bulk_create fails → Order is also rolled back
+    return order
+```
+
+It's one decorator. It makes the API correct under failure conditions. I consider it non-negotiable for any write endpoint that touches more than one table.
+
+---
+
+## Summary: the rules I follow now
+
+After building and debugging this backend, here are the ORM rules I apply to every new queryset:
+
+- If the serializer reads `obj.fk.field` — add `select_related('fk')` to the queryset.
+- If the serializer reads a reverse relation (`obj.images.all()`) — add `prefetch_related('images')`.
+- Chain `select_related` for depth: `seller__user` joins both in one query.
+- For stock or any field modified by concurrent requests — use `select_for_update()` inside `atomic`.
+- For any multi-row insert — use `bulk_create`. Never loop `create()`.
+- For URL fields in serializers — use `HyperlinkedIdentityField`, not `SerializerMethodField`.
+- When unsure — check with `django-debug-toolbar` in dev or print `str(queryset.query)` to see the actual SQL.
+
+The ORM is powerful but it's a leaky abstraction. Once you understand what SQL it's generating, optimizing it becomes straightforward.
+
+---
+
+## See it yourself
+
+Every pattern in this post — `select_related`, `prefetch_related`, `bulk_create`, `select_for_update`, `transaction.atomic` — is in production in this repo:
+
+**[github.com/jagadeesh-sagar/django-ecommerce-app](https://github.com/jagadeesh-sagar/django-ecommerce-app)**
+
+Start in `user/product_views.py` for the list/detail queryset patterns, `user/serializers.py` for the `OrderSerializer` and `bulk_create` usage, and `user/cart_views.py` to see Mistake 6 in the wild (and maybe send a PR).

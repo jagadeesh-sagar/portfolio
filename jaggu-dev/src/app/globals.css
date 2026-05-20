@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-white text-gray-900 antialiased;
+  }
+
+  ::selection {
+    background-color: #ece9ff;
+    color: #534AB7;
+  }
+}
+
+@layer components {
+  /* Tag pill */
+  .tag {
+    @apply inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600 border border-gray-200;
+  }
+
+  /* Card */
+  .card {
+    @apply rounded-xl border border-gray-200 bg-white p-5 transition-colors duration-150 hover:border-accent-border hover:bg-accent-light/20;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover;
+  }
+
+  /* Outline button */
+  .btn-outline {
+    @apply inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-accent hover:text-accent;
+  }
+
+  /* Section heading divider */
+  .section-heading {
+    @apply text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4;
+  }
+}
