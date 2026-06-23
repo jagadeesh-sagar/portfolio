@@ -144,21 +144,22 @@ export default function AboutPage() {
         ))}
       </section>
 
-      {/* Resume download */}
+      {/* Resume view */}
       <section className="rounded-xl border border-accent-border bg-accent-light/40 p-5 sm:p-6 flex flex-col gap-4">
         <div>
           <p className="font-semibold text-gray-900">Want the full picture?</p>
           <p className="text-sm text-gray-600 mt-1">
-            Download my resume for a complete overview of my experience and projects.
+            View my resume for a complete overview of my experience and projects.
           </p>
         </div>
         <a
           href={config.resumeUrl}
-          download
+          target="_blank"
+          rel="noopener noreferrer"
           className="btn-primary w-full sm:w-auto justify-center"
         >
           <IconDownload />
-          Download Resume
+          View Resume
         </a>
       </section>
 

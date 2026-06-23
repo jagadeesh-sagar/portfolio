@@ -7,6 +7,7 @@ excerpt: "A walkthrough of real ORM mistakes I made and fixed while building a p
 
 > 🔗 **All the code discussed in this post lives here:**
 > [**github.com/jagadeesh-sagar/django-ecommerce-app**](https://github.com/jagadeesh-sagar/django-ecommerce-app)
+> **[Live Here](https://ecommerce.chatram.in/)**
 > Every snippet is taken directly from this repo — nothing is made up.
 
 When I started building my [Django e-commerce backend](https://github.com/jagadeesh-sagar/django-ecommerce-app), I wasn't thinking about the database. I was thinking about features — products, carts, orders, reviews, 31 MCP endpoints for AI agents to call. The ORM made it easy to get things working. It also made it easy to quietly fire 40 database queries on a single API request without noticing.
@@ -92,7 +93,7 @@ queryset = models.Product.objects\
     .prefetch_related('images', 'variants', 'reviews', 'questions')
 ```
 
-And the fix I still need to apply to `ProductsListAPIView` — the list view serializer also renders `images`, so it needs:
+And another fix`ProductsListAPIView` — the list view serializer also renders `images`, so it needs:
 
 ```python
 queryset = models.Product.objects\
@@ -132,7 +133,7 @@ product_detail = serializers.HyperlinkedIdentityField(
 )
 ```
 
-`HyperlinkedIdentityField` is the right tool here — it's what it's designed for, it's faster, and it's less code to maintain. You can see the old version commented out in the repo with my note: *"This runs a Python function for every object. Even though it's small, in large lists → performance hit."*
+`HyperlinkedIdentityField` is the right tool here — it's what it's designed for, it's faster, and it's less code to maintain. You can see the old version commented out in the repo with my note: _"This runs a Python function for every object. Even though it's small, in large lists → performance hit."_
 
 ---
 
@@ -221,9 +222,7 @@ def create(self, validated_data):
 
 ---
 
-## Mistake 6: The cart view — where N+1 still lives
-
-Here's one I haven't fully fixed yet, and it's worth being honest about.
+## Mistake 6: The cart view — where N+1 issue
 
 The cart `GET` view fetches cart items like this:
 
@@ -235,10 +234,10 @@ cartitem = models.CartItem.objects.filter(Q(cart__user=cart[0].user))
 
 But `CartItemRetrieveSerializers` renders a full product card — accessing `product.category.name`, `product.brand.name`, `product.seller.user.username`, `product.images`, `product.variants`, and `product.reviews` for every cart item.
 
-What it should look like:
+it was changed to this:
 
 ```python
-# ✅ What it should be
+# ✅
 cartitem = models.CartItem.objects\
     .filter(cart__user=request.user)\
     .select_related(
@@ -297,5 +296,7 @@ The ORM is powerful but it's a leaky abstraction. Once you understand what SQL i
 Every pattern in this post — `select_related`, `prefetch_related`, `bulk_create`, `select_for_update`, `transaction.atomic` — is in production in this repo:
 
 **[github.com/jagadeesh-sagar/django-ecommerce-app](https://github.com/jagadeesh-sagar/django-ecommerce-app)**
+
+**[Live Here](https://ecommerce.chatram.in/)**
 
 Start in `user/product_views.py` for the list/detail queryset patterns, `user/serializers.py` for the `OrderSerializer` and `bulk_create` usage, and `user/cart_views.py` to see Mistake 6 in the wild (and maybe send a PR).

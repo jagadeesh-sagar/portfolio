@@ -78,7 +78,8 @@ export default function Navbar() {
             })}
             <a
               href={config.resumeUrl}
-              download
+              target="_blank"
+              rel="noopener noreferrer"
               className="ml-2 rounded-md border border-accent px-3 py-1.5 text-sm font-medium text-accent transition-colors hover:bg-accent hover:text-white"
             >
               Resume
@@ -122,10 +123,11 @@ export default function Navbar() {
             <div className="mt-4 pt-4 border-t border-gray-100">
               <a
                 href={config.resumeUrl}
-                download
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full rounded-lg bg-accent px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-accent-hover"
               >
-                Download Resume
+                View Resume
               </a>
             </div>
 

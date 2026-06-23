@@ -1,0 +1,60 @@
+---
+title: "Deep Dive into Chatram: A Production-Grade E-Commerce Backend"
+date: "2026-06-23"
+tags: ["Django", "Architecture", "AWS", "Celery", "WebSockets"]
+excerpt: "Exploring the architecture and tech stack behind Chatram — a full-featured e-commerce API built with Django, DRF, Celery, Redis, and Django Channels."
+---
+
+When building an e-commerce platform, the backend architecture needs to be robust, scalable, and capable of handling complex asynchronous and real-time operations. Recently, I built the backend for **[Chatram](https://ecommerce.chatram.in/)**, a full-featured e-commerce API designed to power modern shopping experiences.
+
+In this post, I want to break down the architectural decisions, the core tech stack, and how various components fit together to deliver a production-ready system. You can find the full source code on [GitHub](https://github.com/jagadeesh-sagar/django-ecommerce-app).
+
+## The Core Tech Stack
+
+At its foundation, Chatram is built using **Django 4.x** and **Django REST Framework (DRF)**. Django's "batteries-included" philosophy combined with DRF's powerful serialization makes it perfect for quickly iterating on complex data models like products, carts, and orders. 
+
+The data lives in a **PostgreSQL** database, ensuring ACID compliance which is critical for e-commerce transactions. The entire application is containerized using **Docker and Docker Compose**, running behind an **Nginx** reverse proxy on an **AWS EC2** instance.
+
+## Authentication and Security
+
+One of the first challenges in any e-commerce application is securing user sessions without compromising on modern API standards. 
+
+Instead of relying on `localStorage` for JWTs (which is vulnerable to XSS attacks), Chatram uses **HttpOnly cookies**. I implemented a custom `CookieJWTAuthentication` backend that extracts and validates the token from the cookie securely. 
+
+Furthermore, the platform enforces **Role-Based Access Control (RBAC)** at the view level using custom DRF permission classes like `IsBuyer` and `IsSeller`. This ensures that a buyer can never access seller-specific endpoints, such as the seller order dashboard or product creation APIs.
+
+## Media Handling with AWS S3
+
+E-commerce platforms are incredibly media-heavy. Routing image and video uploads through your application server is a quick way to choke your bandwidth and CPU.
+
+To solve this, Chatram offloads media handling directly to the client. When a seller wants to upload a product image or video, the backend generates an **AWS S3 Presigned URL**. The client uses this temporary URL to upload the file directly to S3. The backend then saves the S3 URL in the database. This pattern keeps the Django server lightweight and leverages AWS infrastructure for heavy lifting.
+
+## Real-Time Order Chat via WebSockets
+
+A unique feature of Chatram is the ability for buyers and sellers to communicate directly regarding specific orders. HTTP polling is inefficient for this, so I integrated **Django Channels** and **WebSockets**.
+
+Using **Redis** as the channel layer, I created a WebSocket consumer that scopes chat rooms per `order_id` (e.g., `/ws/chat/<order_id>/`). When a user connects, messages are broadcasted in real-time to the room group and simultaneously persisted to the PostgreSQL database. This allows the frontend to instantly reflect new messages while retaining chat history.
+
+## Asynchronous Task Processing
+
+Not every action should block the HTTP request cycle. Sending emails, processing large data batches, or periodic cleanups need to happen in the background.
+
+For this, I integrated **Celery** with **Redis** acting as both the message broker and the result backend. Chatram uses Celery for a variety of tasks:
+- **Transactional Emails**: Sending order confirmation emails to buyers and notifications to sellers.
+- **Scheduled Maintenance**: Utilizing `django-celery-beat` for periodic tasks, such as purging abandoned carts (`clean_expired_carts`) or automatically updating order statuses (e.g., moving from *processing* to *shipped*).
+- **Background Processing**: Generating large batches of S3 presigned URLs asynchronously.
+
+## Payments Integration
+
+No e-commerce platform is complete without payments. Chatram integrates with **Razorpay**. 
+The flow is split into two steps:
+1. `POST /user/payment/create-order/`: Contacts Razorpay to create an order and returns the `order_id`, `amount`, and `key_id` to the frontend.
+2. `POST /user/payment/verify/`: Once the client completes the payment, the backend verifies the transaction using an HMAC-SHA256 signature (`razorpay_order_id + "|" + razorpay_payment_id`). 
+
+If the signature matches, the order status is updated and the payment record is saved.
+
+## Conclusion
+
+Building Chatram was a fantastic exercise in architecting a modern, production-grade Django backend. By combining synchronous REST APIs with asynchronous Celery workers and real-time WebSockets, the platform is well-equipped to handle the diverse workloads of an e-commerce ecosystem.
+
+If you're interested in the code, check out the [GitHub Repository](https://github.com/jagadeesh-sagar/django-ecommerce-app) or try out the [Live Demo](https://ecommerce.chatram.in/).

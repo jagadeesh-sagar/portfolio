@@ -65,7 +65,7 @@ function IconExternal() {
 export default async function HomePage() {
   const posts        = await getAllPosts()
   const recent       = posts.slice(0, 2)
-  const featured     = config.projects[0]
+  const featuredProjects = config.projects.slice(0, 2)
   const recentLinkedIn = config.linkedinPosts.slice(0, 3)
 
   return (
@@ -108,7 +108,7 @@ export default async function HomePage() {
 
           {/* CTA links */}
           <div className="mt-6 flex flex-wrap gap-3 sm:flex-row">
-            <a href={config.resumeUrl} download className="btn-primary">
+            <a href={config.resumeUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
               <IconDownload />
               Resume
             </a>
@@ -148,6 +148,33 @@ export default async function HomePage() {
 
       </section>
 
+      {/* ── Highlighted Project Banner ── */}
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-accent to-accent-hover p-[1px] shadow-sm">
+        <div className="relative rounded-2xl bg-white p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 h-full">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Check out Chatram</h2>
+            <p className="mt-2 text-gray-600 text-sm sm:text-base leading-relaxed">
+              My latest production-grade E-Commerce backend built with Django, DRF, and AWS S3. 
+              Experience the live site or read the deep-dive architectural blog.
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-col sm:flex-row gap-3">
+            <a
+              href="https://ecommerce.chatram.in/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary whitespace-nowrap justify-center"
+            >
+              <IconExternal />
+              Live Demo
+            </a>
+            <Link href="/blog/chatram-ecommerce-architecture" className="btn-outline whitespace-nowrap justify-center">
+              Read Blog
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ── Skills ── */}
       <section>
         <p className="section-heading">Skills</p>
@@ -160,10 +187,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Featured Project ── */}
+      {/* ── Featured Projects ── */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <p className="section-heading mb-0">Featured Project</p>
+          <p className="section-heading mb-0">Featured Projects</p>
           <Link
             href="/projects"
             className="flex items-center gap-1 text-xs font-medium text-accent hover:text-accent-hover transition-colors"
@@ -172,40 +199,44 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <div className="card">
-          <div className="flex items-start justify-between gap-4">
-            <h2 className="font-semibold text-gray-900">{featured.name}</h2>
-            <div className="flex shrink-0 gap-3">
-              {featured.github && (
-                <a
-                  href={featured.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-accent transition-colors"
-                  aria-label="GitHub"
-                >
-                  <IconGitHub />
-                </a>
-              )}
-              {featured.live && (
-                <a
-                  href={featured.live}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-accent transition-colors"
-                  aria-label="Live demo"
-                >
-                  <IconExternal />
-                </a>
-              )}
+        <div className="flex flex-col gap-4">
+          {featuredProjects.map((project) => (
+            <div key={project.name} className="card">
+              <div className="flex items-start justify-between gap-4">
+                <h2 className="font-semibold text-gray-900">{project.name}</h2>
+                <div className="flex shrink-0 gap-3">
+                  {project.github && (
+                    <a
+                      href={project.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-accent transition-colors"
+                      aria-label="GitHub"
+                    >
+                      <IconGitHub />
+                    </a>
+                  )}
+                  {project.live && (
+                    <a
+                      href={project.live}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-accent transition-colors"
+                      aria-label="Live demo"
+                    >
+                      <IconExternal />
+                    </a>
+                  )}
+                </div>
+              </div>
+              <p className="mt-2 text-sm text-gray-600 leading-relaxed">{project.desc}</p>
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {project.tags.map((tag) => (
+                  <span key={tag} className="tag">{tag}</span>
+                ))}
+              </div>
             </div>
-          </div>
-          <p className="mt-2 text-sm text-gray-600 leading-relaxed">{featured.desc}</p>
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {featured.tags.map((tag) => (
-              <span key={tag} className="tag">{tag}</span>
-            ))}
-          </div>
+          ))}
         </div>
       </section>
 

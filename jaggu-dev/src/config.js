@@ -9,7 +9,7 @@ const config = {
   email: "jagadeeshsagar40@gmail.com",
   github: "https://github.com/jagadeesh-sagar",
   linkedin: "https://www.linkedin.com/in/jagadeesh-gobburi-31b10b311",
-  resumeUrl: "/resume.pdf",
+  resumeUrl: "https://drive.google.com/file/d/1HYmzP33burHPZaZRmuW6-b_8HTISqDjg/view",
   avatar: "/avatar.jpeg",
 
   skills: [
@@ -79,9 +79,16 @@ const config = {
 
   projects: [
     {
+      name: "Chatram E-Commerce Backend",
+      desc: "A production-grade REST API for a full-featured e-commerce platform with real-time chat and AWS S3 integration.",
+      tags: ["Django", "DRF", "Celery", "Channels", "PostgreSQL", "AWS S3"],
+      github: "https://github.com/jagadeesh-sagar/django-ecommerce-app",
+      live: "https://ecommerce.chatram.in/",
+    },
+    {
       name: "MCP E-Commerce Backend",
       desc: "31 AI-callable endpoints on Django REST API. Products, orders, reviews — all tool-callable by AI agents.",
-      tags: ["Django", "FastMCP", "PostgreSQL", "Docker", "AWS EC2"],
+      tags: ["Django", "FastMCP", "PostgreSQL", "Docker", "AI Agents"],
       github: "https://github.com/jagadeesh-sagar/django-ecommerce-app",
       live: "",
     },
