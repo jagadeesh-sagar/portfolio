@@ -87,9 +87,7 @@ export default function AboutPage() {
         <p className="section-heading">Who I am</p>
         <p className="text-gray-700 leading-relaxed text-base">
           I&apos;m a final-year Computer Science student at St. Martin&apos;s Engineering College,
-          Hyderabad. My core focus is backend development with <strong>Django</strong> and{' '}
-          <strong>PostgreSQL</strong> — building APIs that are reliable, well-optimised, and
-          production-ready.
+          Hyderabad. My core focus is backend engineering and autonomous AI agent development — building systems with <strong>Django</strong>, <strong>PostgreSQL</strong>, and <strong>Python</strong> that are reliable, well-optimised, and production-ready.
         </p>
         <p className="text-gray-700 leading-relaxed text-base">
           On the cloud side, I deploy on <strong>AWS EC2</strong> with Docker + Nginx, use{' '}
@@ -99,9 +97,7 @@ export default function AboutPage() {
           own a feature end-to-end, from the database to the UI.
         </p>
         <p className="text-gray-700 leading-relaxed text-base">
-          Most recently I added <strong>FastMCP</strong> to my e-commerce backend — 31 endpoints
-          that AI agents can call directly. It&apos;s an exciting space, but it sits on top of a
-          solid, well-tested Django + PostgreSQL foundation.
+          I specialize in building AI-integrated developer tools and backend interfaces — such as my <strong>CLI Autonomous AI Coding Agent</strong> (featuring multi-tool execution, bash integration, persistent SQLite session memory, and multi-provider LLM support) and <strong>31 FastMCP endpoints</strong> on my e-commerce REST API.
         </p>
       </section>
 

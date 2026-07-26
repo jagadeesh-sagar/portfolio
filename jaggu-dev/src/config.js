@@ -2,7 +2,7 @@ const config = {
   name: "Jagadeesh",
   nickname: "jaggu",
   tagline: "I build backends that AI can talk to.",
-  bio: "Final-year CS student at St. Martin's Engineering College, Hyderabad. I build backends with Django & PostgreSQL, deploy on AWS EC2 + S3, and ship full-stack projects with React and Next.js.",
+  bio: "Final-year CS student at St. Martin's Engineering College, Hyderabad. I build backends with Django & PostgreSQL, deploy on AWS EC2 + S3, and develop autonomous AI coding agents and full-stack projects.",
   location: "Hyderabad, India",
   openToWork: true,
 
@@ -15,13 +15,17 @@ const config = {
   skills: [
     "Python", "Django", "PostgreSQL", "Docker", "AWS EC2", "AWS S3",
     "AWS SQS", "AWS SNS", "AWS Lambda", "Nginx", "JWT/RBAC", "FastMCP",
-    "REST APIs", "Celery", "n8n", "HTML5", "CSS3", "JavaScript", "React",
+    "AI Agents", "SQLite", "Tool Calling", "REST APIs", "Celery", "n8n", "HTML5", "CSS3", "JavaScript", "React",
   ],
 
   skillCategories: [
     {
       label: "Backend & APIs",
       skills: ["Python", "Django", "Django REST Framework", "PostgreSQL", "Celery", "JWT/RBAC", "FastMCP", "REST APIs"],
+    },
+    {
+      label: "AI & Autonomous Agents",
+      skills: ["AI Agents", "Tool Calling", "SQLite", "CLI Tools", "FastMCP", "LLM Integration"],
     },
     {
       label: "Cloud & DevOps",
@@ -78,6 +82,13 @@ const config = {
   ],
 
   projects: [
+    {
+      name: "CLI Autonomous AI Coding Agent",
+      desc: "A modular, CLI-based autonomous AI coding assistant with bash tool execution, file editing, persistent SQLite session memory, and pluggable LLM provider support (Anthropic, Groq, DeepSeek, Sarvam, OpenAI).",
+      tags: ["Python", "AI Agents", "SQLite", "CLI", "Tool Calling", "LLMs"],
+      github: "https://github.com/jagadeesh-sagar/cli_agent",
+      live: "",
+    },
     {
       name: "Chatram E-Commerce Backend",
       desc: "A production-grade REST API for a full-featured e-commerce platform with real-time chat and AWS S3 integration.",

@@ -96,8 +96,8 @@ export default async function HomePage() {
             Final-year CS student at St. Martin&apos;s Engineering College, Hyderabad.
             I build backends with <strong className="font-medium text-gray-800">Django &amp; PostgreSQL</strong>,
             deploy on <strong className="font-medium text-gray-800">AWS EC2, S3, SQS, SNS &amp; Lambda</strong>,
-            and ship frontends with <strong className="font-medium text-gray-800">React</strong>.
-            My latest project adds <strong className="font-medium text-gray-800">31 MCP endpoints</strong> so AI agents can call the API directly.
+            and build autonomous <strong className="font-medium text-gray-800">AI Agents &amp; CLI tools</strong>.
+            My latest work includes a modular <strong className="font-medium text-gray-800">CLI Autonomous AI Coding Agent</strong> and <strong className="font-medium text-gray-800">31 MCP endpoints</strong> for AI tool-calling.
           </p>
 
           {/* Location */}
