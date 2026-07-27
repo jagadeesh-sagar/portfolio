@@ -6,9 +6,9 @@ import { usePathname } from 'next/navigation'
 import config from '@/config'
 
 const navLinks = [
-  { href: '/blog',     label: 'Blog'     },
   { href: '/projects', label: 'Projects' },
-  { href: '/about',    label: 'About'    },
+  { href: '/about',    label: 'About & Skills' },
+  { href: '/blog',     label: 'Writing / Blog' },
 ]
 
 function IconMenu() {
@@ -32,6 +32,18 @@ function IconClose() {
   )
 }
 
+function IconFileText() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+      <polyline points="10 9 9 9 8 9"/>
+    </svg>
+  )
+}
+
 export default function Navbar() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -47,48 +59,56 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-sm">
-        <nav className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
+      <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/80 backdrop-blur-md transition-all">
+        <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
 
-          {/* Logo */}
+          {/* Logo Brand */}
           <Link
             href="/"
-            className="font-mono text-sm font-semibold text-accent hover:text-accent-hover transition-colors"
+            className="flex items-center gap-2 group"
           >
-            jaggu.dev
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 font-mono text-sm font-bold text-white shadow-md shadow-indigo-500/20 transition-transform group-hover:scale-105">
+              JS
+            </div>
+            <span className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
+              {config.name} <span className="text-indigo-600 font-mono text-xs font-medium">.dev</span>
+            </span>
           </Link>
 
           {/* Desktop links */}
-          <div className="hidden sm:flex items-center gap-1">
+          <div className="hidden sm:flex items-center gap-1.5">
             {navLinks.map(({ href, label }) => {
               const isActive = pathname.startsWith(href)
               return (
                 <Link
                   key={href}
                   href={href}
-                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  className={`rounded-xl px-3.5 py-1.5 text-sm font-medium transition-all ${
                     isActive
-                      ? 'bg-accent-light text-accent'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-indigo-50 text-indigo-600 font-semibold shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
                   }`}
                 >
                   {label}
                 </Link>
               )
             })}
+
+            {/* Direct Recruiter Resume CTA */}
             <a
               href={config.resumeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-2 rounded-md border border-accent px-3 py-1.5 text-sm font-medium text-accent transition-colors hover:bg-accent hover:text-white"
+              className="ml-3 inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 transition-all hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/30 active:scale-95"
             >
+              <IconFileText />
               Resume
             </a>
           </div>
 
           {/* Mobile hamburger */}
           <button
-            className="sm:hidden p-1.5 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            className="sm:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
@@ -99,20 +119,20 @@ export default function Navbar() {
         </nav>
       </header>
 
-      {/* Mobile drawer — slides down below the sticky header */}
+      {/* Mobile drawer */}
       {open && (
-        <div className="sm:hidden fixed inset-0 top-[49px] z-40 bg-white border-t border-gray-100 flex flex-col">
-          <nav className="flex flex-col px-4 pt-4 pb-8 gap-1">
+        <div className="sm:hidden fixed inset-0 top-[57px] z-40 bg-white/95 backdrop-blur-lg border-t border-slate-100 flex flex-col animate-in fade-in duration-200">
+          <nav className="flex flex-col px-5 pt-5 pb-8 gap-2">
             {navLinks.map(({ href, label }) => {
               const isActive = pathname.startsWith(href)
               return (
                 <Link
                   key={href}
                   href={href}
-                  className={`rounded-lg px-4 py-3 text-base font-medium transition-colors ${
+                  className={`rounded-xl px-4 py-3 text-base font-medium transition-all ${
                     isActive
-                      ? 'bg-accent-light text-accent'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? 'bg-indigo-50 text-indigo-600 font-semibold'
+                      : 'text-slate-700 hover:bg-slate-50'
                   }`}
                 >
                   {label}
@@ -120,31 +140,23 @@ export default function Navbar() {
               )
             })}
 
-            <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-3">
               <a
                 href={config.resumeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full rounded-lg bg-accent px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-accent-hover"
+                className="flex items-center justify-center gap-2 w-full rounded-xl bg-indigo-600 px-4 py-3 text-base font-semibold text-white shadow-md shadow-indigo-500/20 transition-all hover:bg-indigo-700"
               >
+                <IconFileText />
                 View Resume
               </a>
             </div>
 
-            {/* Social links in drawer */}
-            <div className="mt-4 flex items-center gap-4 px-1">
-              <a href={config.github} target="_blank" rel="noopener noreferrer"
-                className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
-                GitHub
-              </a>
-              <a href={config.linkedin} target="_blank" rel="noopener noreferrer"
-                className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
-                LinkedIn
-              </a>
-              <a href={`mailto:${config.email}`}
-                className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
-                Email
-              </a>
+            {/* Quick Contact info */}
+            <div className="mt-4 flex items-center justify-between px-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
+              <a href={config.github} target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600">GitHub</a>
+              <a href={config.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600">LinkedIn</a>
+              <a href={`mailto:${config.email}`} className="hover:text-indigo-600">Email Me</a>
             </div>
           </nav>
         </div>

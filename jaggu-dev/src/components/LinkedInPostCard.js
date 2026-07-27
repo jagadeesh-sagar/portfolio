@@ -30,7 +30,7 @@ export default function LinkedInPostCard({ post }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col rounded-xl border border-gray-200 bg-white p-4 sm:p-5 transition-colors duration-150 hover:border-[#0A66C2]/40 hover:bg-[#0A66C2]/[0.03] active:bg-[#0A66C2]/[0.06]"
+      className="card group flex flex-col hover:border-[#0A66C2]/40 hover:bg-gradient-to-b hover:from-white hover:to-[#0A66C2]/[0.02]"
     >
       {/* Badge + date + arrow */}
       <div className="flex items-center justify-between gap-2">
@@ -39,20 +39,20 @@ export default function LinkedInPostCard({ post }) {
             <IconLinkedIn />
             LinkedIn
           </span>
-          <time className="text-xs text-gray-400 font-mono">{formatDate(date)}</time>
+          <time className="text-xs text-slate-400 font-mono">{formatDate(date)}</time>
         </div>
-        <span className="shrink-0 text-gray-400 group-hover:text-[#0A66C2] transition-colors">
+        <span className="shrink-0 text-slate-400 group-hover:text-[#0A66C2] transition-colors group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">
           <IconArrowUpRight />
         </span>
       </div>
 
       {/* Title */}
-      <h3 className="mt-3 text-sm font-semibold text-gray-900 leading-snug group-hover:text-[#0A66C2] transition-colors line-clamp-2">
+      <h3 className="mt-3 text-sm font-bold text-slate-900 leading-snug group-hover:text-[#0A66C2] transition-colors line-clamp-2">
         {title}
       </h3>
 
       {/* Excerpt */}
-      <p className="mt-2 text-sm text-gray-500 leading-relaxed line-clamp-3 flex-1">
+      <p className="mt-2 text-sm text-slate-600 leading-relaxed line-clamp-3 flex-1">
         {excerpt}
       </p>
 
@@ -60,18 +60,17 @@ export default function LinkedInPostCard({ post }) {
       {tags.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-1.5">
           {tags.map((tag) => (
-            <span key={tag}
-              className="inline-flex items-center rounded-full bg-gray-100 border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+            <span key={tag} className="tag">
               {tag}
             </span>
           ))}
         </div>
       )}
 
-      {/* Always-visible read link (not hover-only — important for mobile) */}
-      <p className="mt-4 flex items-center gap-1 text-xs font-semibold text-[#0A66C2]">
+      <p className="mt-4 flex items-center gap-1 text-xs font-semibold text-[#0A66C2] group-hover:underline">
         Read on LinkedIn <IconArrowUpRight />
       </p>
     </a>
   )
 }
+

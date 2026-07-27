@@ -14,11 +14,30 @@ module.exports = {
       },
       colors: {
         accent: {
-          DEFAULT: '#534AB7',
-          hover:   '#4740a3',
-          light:   '#ece9ff',
-          border:  '#c4bff5',
+          DEFAULT: '#6366f1',
+          hover:   '#4f46e5',
+          light:   '#eef2ff',
+          border:  '#c7d2fe',
+          glow:    '#818cf8',
         },
+        slate: {
+          950: '#020617',
+        }
+      },
+      boxShadow: {
+        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+        'glow': '0 0 20px -3px rgba(99, 102, 241, 0.3)',
+        'glow-lg': '0 0 35px -5px rgba(99, 102, 241, 0.45)',
+      },
+      animation: {
+        'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'float': 'float 6s ease-in-out infinite',
+      },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-6px)' },
+        }
       },
       typography: (theme) => ({
         DEFAULT: {

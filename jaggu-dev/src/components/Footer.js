@@ -2,19 +2,22 @@ import config from '@/config'
 
 export default function Footer() {
   return (
-    <footer className="border-t border-gray-200 bg-gray-50 py-8 mt-16">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <footer className="border-t border-slate-200/80 bg-slate-50/80 py-10 mt-20">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
 
-        <p className="text-sm text-gray-500">
-          © {new Date().getFullYear()} {config.name}. Built with Next.js + Tailwind.
-        </p>
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <p className="text-sm text-slate-500">
+            © {new Date().getFullYear()} <span className="font-semibold text-slate-800">{config.name}</span>. Built with Next.js &amp; Tailwind CSS.
+          </p>
+        </div>
 
-        <div className="flex items-center gap-5 text-sm">
+        <div className="flex items-center gap-6 text-sm font-medium">
           <a
             href={config.github}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-500 hover:text-accent transition-colors"
+            className="text-slate-500 hover:text-indigo-600 transition-colors"
           >
             GitHub
           </a>
@@ -22,13 +25,13 @@ export default function Footer() {
             href={config.linkedin}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-500 hover:text-accent transition-colors"
+            className="text-slate-500 hover:text-indigo-600 transition-colors"
           >
             LinkedIn
           </a>
           <a
             href={`mailto:${config.email}`}
-            className="text-gray-500 hover:text-accent transition-colors"
+            className="text-slate-500 hover:text-indigo-600 transition-colors"
           >
             {config.email}
           </a>
@@ -38,3 +41,4 @@ export default function Footer() {
     </footer>
   )
 }
+

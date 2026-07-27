@@ -6,16 +6,17 @@
 // Do NOT add @next/mdx or experimental.mdxRs; they conflict with next-mdx-remote.
 
 const nextConfig = {
-  // Allow importing SVG, MDX etc. as static assets if needed later
-  // (next-mdx-remote does NOT require pageExtensions changes)
-
-  images: {
-    // Add remote image domains here if you ever use next/image with external URLs
-    // remotePatterns: [{ protocol: 'https', hostname: 'example.com' }],
+  images: {},
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+      }
+    }
+    return config
   },
-
-  // Uncomment to produce a fully static export (no server needed after build)
-  // output: 'export',
 }
 
 module.exports = nextConfig
+
